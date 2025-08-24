@@ -1,31 +1,27 @@
 package br.edu.ifpb.padroes.atv3.musicas.abcd;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 
 public class ClienteHttpABCD {
 
-    public static final String URI_SERVICO = "http://localhost:3000/musicas";
-
-    public List<Musica> listarMusicas() {
+    public List<Musica> getMusicas() {
         try {
-            HttpRequest musicaRequest = HttpRequest.newBuilder(new URI(URI_SERVICO)).GET().build();
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpResponse<String> response = httpClient.send(musicaRequest, HttpResponse.BodyHandlers.ofString());
+            URL url = new URL("http://localhost:3000/musicas");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            List<Musica> musicas = objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, Musica.class));
-            return musicas;
-        } catch (URISyntaxException | IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+            InputStream in = conn.getInputStream();
+            ObjectMapper mapper = new ObjectMapper();
+
+            return mapper.readValue(in, new TypeReference<List<Musica>>() {});
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao buscar músicas do serviço ABCD", e);
         }
     }
-
 }
